@@ -1,6 +1,6 @@
 (function () {
   var WHATSAPP = '966581919058';
-  var MAIL_ENDPOINT = 'https://formsubmit.co/ajax/lawyer@abdulwahabalturki.com';
+  var MAIL_ENDPOINT = 'https://script.google.com/macros/s/AKfycbxopY9X5NNPmJAQMyKnVxrk_Eif_HV2KqAP6y5OueJCnE-2njXvJda-IXYKB3NqXApp/exec';
   var areas = window.AREAS || [];
   var STAGES = window.STAGES || [];
   var form = document.getElementById('intake-form');
@@ -61,7 +61,7 @@
     var cb = el('input', { type: 'checkbox', name: '__consent' });
     var span = el('span');
     span.appendChild(document.createTextNode('اطلعت على '));
-    var a = el('a', { href: '/privacy/', target: '_blank' }, 'سياسة الخصوصية');
+    var a = el('a', { href: '/privacy', target: '_blank' }, 'سياسة الخصوصية');
     span.appendChild(a);
     span.appendChild(document.createTextNode('، وأوافق على معالجة بياناتي لغرض دراسة طلبي والتواصل معي.'));
     consent.appendChild(cb); consent.appendChild(span);
@@ -86,22 +86,14 @@
     if (!form.querySelector('input[name=__consent]').checked) { err.textContent = 'يلزم الموافقة على سياسة الخصوصية قبل الإرسال.'; err.hidden = false; return; }
     err.hidden = true;
     var lines = ['طلب خدمة – ' + current.title, ''];
-    var payload = { _subject: 'طلب خدمة – ' + current.title, _template: 'table', _captcha: 'false', 'المجال': current.title };
+    var get = function (n) { var x = form.querySelector('[name=' + n + ']'); return x ? x.value.trim() : ''; };
     inputs.forEach(function (i) {
       var v = i.value.trim();
-      if (!v) return;
-      lines.push(i.dataset.label + ': ' + v);
-      payload[i.dataset.label] = v;
+      if (v) lines.push(i.dataset.label + ': ' + v);
     });
-    var em = form.querySelector('[name=email]');
-    if (em && em.value.trim()) payload._replyto = em.value.trim();
+    var payload = { area: current.title, name: get('name'), phone: get('phone'), email: get('email'), caseType: get('caseType'), summary: get('summary'), text: lines.join('\n') };
     try {
-      fetch(MAIL_ENDPOINT, {
-        method: 'POST',
-        keepalive: true,
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify(payload)
-      }).catch(function () {});
+      fetch(MAIL_ENDPOINT, { method: 'POST', mode: 'no-cors', keepalive: true, headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) }).catch(function () {});
     } catch (e) {}
     window.open('https://wa.me/' + WHATSAPP + '?text=' + encodeURIComponent(lines.join('\n')), '_blank');
   });
